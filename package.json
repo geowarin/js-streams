@@ -1,0 +1,33 @@
+{
+  "name": "js-streams",
+  "version": "1.0.0",
+  "main": "lib/index.js",
+  "typings": "lib/index.js",
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc -p ."
+  },
+  "devDependencies": {
+    "@types/jest": "^19.2.4",
+    "jest": "^20.0.4",
+    "ts-jest": "^20.0.6",
+    "typescript": "^2.3.4"
+  },
+  "jest": {
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js"
+    ],
+    "transform": {
+      "^.+\\.(ts|tsx)$": "<rootDir>/node_modules/ts-jest/preprocessor.js"
+    },
+    "testMatch": [
+      "<rootDir>/src/test/**/*.(ts|tsx)"
+    ],
+    "cacheDirectory": "./.cache/jest-cache",
+    "modulePaths": [
+      "src/main"
+    ]
+  }
+}
