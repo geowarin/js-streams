@@ -7,6 +7,6 @@
     "downlevelIteration": true
   },
   "include": [
-    "src/main"
+    "src"
   ]
 }

@@ -23,7 +23,7 @@
       "^.+\\.(ts|tsx)$": "<rootDir>/node_modules/ts-jest/preprocessor.js"
     },
     "testMatch": [
-      "<rootDir>/src/test/**/*.(ts|tsx)"
+      "<rootDir>/test/**/*.(ts|tsx)"
     ],
     "cacheDirectory": "./.cache/jest-cache",
     "modulePaths": [

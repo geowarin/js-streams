@@ -1,5 +1,5 @@
 
-import {Stream, streamOf} from "../main/index";
+import {Stream, streamOf} from "../src/index";
 
 describe("Stream operations", () => {
 
