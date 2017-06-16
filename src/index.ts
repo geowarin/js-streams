@@ -12,85 +12,140 @@ export interface Predicate<T> {
   (e: T): boolean
 }
 
-class Pipeline {
-  private operations: Operation[] = [];
+class Operation {
+  previousOperation: Operation;
 
-  addOperation(operation: Operation) {
-    this.operations.push(operation);
+  constructor(private operationWork: OperationWork) {
   }
 
-  run(obj) {
-    for (let operation of this.operations) {
-      let operationResult = operation.apply(obj);
-      if (operationResult === eop) {
-        return eop;
-      }
-      obj = operationResult;
+  next() {
+    return this.operationWork(this.previousOperation);
+  }
+
+  // [Symbol.iterator](): Iterator<any> {
+  //   return {
+  //     next: () => {
+  //       return this.operationWork(this.previousOperation)
+  //     }
+  //   }
+  // }
+}
+
+type OperationWork = (previousOperation: Operation) => IteratorResult<any>
+
+class Pipeline<T> implements Iterable<T> {
+  private lastOperation: Operation;
+
+  addOperation(newOperation: Operation) {
+    if (this.lastOperation) {
+      const prev = this.lastOperation;
+      newOperation.previousOperation = prev;
     }
-    return obj;
+    this.lastOperation = newOperation;
+  }
+
+  [Symbol.iterator](): Iterator<T> {
+    return {
+      next: () => {
+        return this.lastOperation.next();
+      }
+    }
   }
 }
 
-class StreamIterator<T> implements Iterator<T> {
-  private iterator: Iterator<any>;
-
-  constructor(private iterable: Iterable<any>, private pipeline: Pipeline) {
-    this.iterator = iterable[Symbol.iterator]();
+function isIterable(obj) {
+  // checks for null and undefined
+  if (obj == null) {
+    return false;
   }
-
-  next(): IteratorResult<T> {
-    let iteratorResult;
-    while (true) {
-      iteratorResult = this.iterator.next();
-      if (iteratorResult.done) {
-        return {
-          done: true,
-          value: undefined
-        }
-      }
-
-      const nextVal = this.pipeline.run(iteratorResult.value);
-      if (nextVal === eop) {
-        continue;
-      }
-
-      return {
-        value: nextVal,
-        done: iteratorResult.done
-      }
-    }
-  }
+  return typeof obj[Symbol.iterator] === 'function';
 }
 
 export class Stream<T> implements Iterable<T> {
+  private pipeline: Pipeline<any>;
 
   [Symbol.iterator](): Iterator<T> {
-    return new StreamIterator<T>(this.iterable, this.pipeline);
+    return this.pipeline[Symbol.iterator]();
   }
 
-  private pipeline = new Pipeline();
-
   constructor(private iterable: Iterable<any>) {
+    this.pipeline = new Pipeline();
+    let iterator = iterable [Symbol.iterator]();
+    this.pipeline.addOperation(new Operation(
+        () => {
+          return iterator.next();
+        }
+    ));
   }
 
   map<U>(mapper: MappingFunction<T, U>): Stream<U> {
-    this.pipeline.addOperation({
-      apply: (obj) => {
-        return mapper(obj)
-      }
-    });
+    this.pipeline.addOperation(new Operation(
+        (prev) => {
+          const nextResult = prev.next();
+          if (nextResult.done) {
+            return nextResult;
+          }
+          return {
+            value: mapper(nextResult.value),
+            done: false
+          }
+        }
+    ));
+    return this as any
+  }
+
+  flatMap<U>(mapper: MappingFunction<T, U>): Stream<U> {
+    this.map(mapper);
+    return this.flatten() as any;
+  }
+
+  flatten(): Stream<T> {
+    let currentIterator: Iterator<any> = null;
+    this.pipeline.addOperation(new Operation(
+        (prev) => {
+
+          while (true) {
+            if (currentIterator != null) {
+              const iteratorResult = currentIterator.next();
+              if (!iteratorResult.done) {
+                return iteratorResult
+              }
+            }
+
+            const nextResult = prev.next();
+            if (nextResult.done) {
+              return nextResult;
+            }
+
+            if (isIterable(nextResult.value)) {
+              currentIterator = nextResult.value[Symbol.iterator]();
+            } else {
+              return nextResult;
+            }
+          }
+        }
+    ));
     return this as any
   }
 
   filter(predicate: Predicate<T>): Stream<T> {
-    this.pipeline.addOperation({
-      apply: (obj) => {
-        if (predicate(obj)) {
-          return obj
+    this.pipeline.addOperation(new Operation(
+        (prev) => {
+          while (true) {
+            const nextResult = prev.next();
+            if (nextResult.done) {
+              return nextResult;
+            }
+
+            if (predicate(nextResult.value)) {
+              return {
+                value: nextResult.value,
+                done: false
+              }
+            }
+          }
         }
-        return eop
-      }
-    });
+    ));
     return this
   }
 

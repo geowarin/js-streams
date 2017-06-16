@@ -27,12 +27,28 @@ describe("Stream operations", () => {
     ).toEqual([4, 16])
   });
 
-  it('should map filter', () => {
+  it('should filter', () => {
 
     expect(
         streamOf([1, 2])
             .filter(i => i % 2 == 0)
             .toArray()
     ).toEqual([2])
+  });
+
+  it('should flatten one level', () => {
+    expect(
+        streamOf([[[1, 2]]])
+            .flatten()
+            .toArray()
+    ).toEqual([[1, 2]])
+  });
+
+  it('should flatmap', () => {
+    expect(
+        streamOf([1, 2])
+            .flatMap(i => [i, i * 2])
+            .toArray()
+    ).toEqual([1, 2, 2, 4])
   });
 });
