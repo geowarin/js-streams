@@ -63,7 +63,7 @@ export class Stream<T> implements Iterable<T> {
           }
         }
     );
-    return this as any
+    return this as any;
   }
 
   flatMap<U>(mapper: MappingFunction<T, U>): Stream<U> {
@@ -83,7 +83,7 @@ export class Stream<T> implements Iterable<T> {
           }
         }
     );
-    return this as any
+    return this as any;
   }
 
   filter(predicate: Predicate<T>): Stream<T> {
@@ -95,15 +95,11 @@ export class Stream<T> implements Iterable<T> {
           }
         }
     );
-    return this
+    return this;
   }
 
   toArray(): T[] {
-    const result = [];
-    for (let el of this) {
-      result.push(el);
-    }
-    return result;
+    return [...this];
   }
 }
 
