@@ -6,7 +6,26 @@ export interface Predicate<T> {
   (e: T): boolean
 }
 
-export type GroupingResult<T> = {[key: string]: T[]}
+export interface Consumer<T> {
+  (e: T): void
+}
+
+export type Map<T> = {[key: string]: T}
+export type GroupingResult<T> = Map<T[]>
+
+function getIterator(iterable): IterableIterator<any> {
+  return iterable [Symbol.iterator]()
+}
+
+function isIterable(obj) {
+  return obj != null && typeof obj[Symbol.iterator] === 'function';
+}
+
+function entries <T> (obj: Map<T>) {
+  return Object.keys(obj).map(key => [key, obj[key]]);
+}
+
+type OperationWork = (previousOperation: Operation) => IterableIterator<any>
 
 class Operation {
   previousOperation: Operation;
@@ -17,12 +36,6 @@ class Operation {
   iterator() {
     return this.operationWork(this.previousOperation);
   }
-}
-
-type OperationWork = (previousOperation: Operation) => IterableIterator<any>
-
-function getIterator(iterable): IterableIterator<any> {
-  return iterable [Symbol.iterator]()
 }
 
 class Pipeline<T> {
@@ -39,10 +52,6 @@ class Pipeline<T> {
   iterator(): Iterator<T> {
     return this.lastOperation.iterator();
   }
-}
-
-function isIterable(obj) {
-  return obj != null && typeof obj[Symbol.iterator] === 'function';
 }
 
 export class Stream<T> implements Iterable<T> {
@@ -104,6 +113,12 @@ export class Stream<T> implements Iterable<T> {
     return [...this];
   }
 
+  forEach(consumer: Consumer<T>) {
+    for (let x of this) {
+      consumer(x);
+    }
+  }
+
   groupBy(mappingFunction: MappingFunction<T, string>): GroupingResult<T> {
     const result = {};
     for (let x of this) {
@@ -117,6 +132,12 @@ export class Stream<T> implements Iterable<T> {
   }
 }
 
-export function streamOf<T>(iterable: Iterable<T>): Stream<T> {
-  return new Stream<T>(iterable)
+export function streamOf<T>(map: Map<T>): Stream<[string, T]>;
+export function streamOf<T>(iterable: Iterable<T>): Stream<T>;
+
+export function streamOf<T>(iterable) {
+  if (isIterable(iterable)) {
+    return new Stream<T>(iterable)
+  }
+  return new Stream(entries(iterable));
 }

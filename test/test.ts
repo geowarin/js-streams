@@ -1,5 +1,4 @@
-
-import {Stream, streamOf} from "../src/index";
+import {streamOf} from "../src/index";
 
 describe("Stream operations", () => {
 
@@ -55,10 +54,30 @@ describe("Stream operations", () => {
   it('should groupBy', () => {
     expect(
         streamOf([1, 2])
-            .groupBy(e => e % 2 == 0 ? "even": "odd")
+            .groupBy(e => e % 2 == 0 ? "even" : "odd")
     ).toEqual({
       odd: [1],
       even: [2],
     })
+  });
+
+  it('stream map entries', () => {
+    const map = {
+      hello: "world",
+      hi: "people"
+    };
+    expect(streamOf(map).toArray()).toEqual([["hello", "world"], ["hi", "people"]])
+  });
+
+  it('support map elegantly', () => {
+    const map = {
+      hello: ["world", "people"],
+      "buon giorno": ["amici"]
+    };
+    const result = streamOf(map)
+        .map(([salutation, subjects]) => `${salutation}, ${subjects.join(" & ")}`)
+        .toArray();
+
+    expect(result).toEqual(["hello, world & people", "buon giorno, amici"])
   });
 });
