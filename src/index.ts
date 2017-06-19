@@ -1,11 +1,5 @@
-const eop = {};
-
 export interface MappingFunction<T, U> {
   (e: T): U
-}
-
-interface Operation {
-  apply(obj)
 }
 
 export interface Predicate<T> {
@@ -21,35 +15,27 @@ class Operation {
   next() {
     return this.operationWork(this.previousOperation);
   }
-
-  // [Symbol.iterator](): Iterator<any> {
-  //   return {
-  //     next: () => {
-  //       return this.operationWork(this.previousOperation)
-  //     }
-  //   }
-  // }
 }
 
-type OperationWork = (previousOperation: Operation) => IteratorResult<any>
+type OperationWork = (previousOperation: Operation) => IterableIterator<any>
 
-class Pipeline<T> implements Iterable<T> {
+function getIterator(iterable): IterableIterator<any> {
+  return iterable [Symbol.iterator]()
+}
+
+class Pipeline<T> {
   private lastOperation: Operation;
 
-  addOperation(newOperation: Operation) {
+  addOperation(work: OperationWork) {
+    const newOperation = new Operation(work);
     if (this.lastOperation) {
-      const prev = this.lastOperation;
-      newOperation.previousOperation = prev;
+      newOperation.previousOperation = this.lastOperation;
     }
     this.lastOperation = newOperation;
   }
 
-  [Symbol.iterator](): Iterator<T> {
-    return {
-      next: () => {
-        return this.lastOperation.next();
-      }
-    }
+  next(): Iterator<T> {
+    return this.lastOperation.next();
   }
 }
 
@@ -65,32 +51,29 @@ export class Stream<T> implements Iterable<T> {
   private pipeline: Pipeline<any>;
 
   [Symbol.iterator](): Iterator<T> {
-    return this.pipeline[Symbol.iterator]();
+    return this.pipeline.next();
   }
 
   constructor(private iterable: Iterable<any>) {
     this.pipeline = new Pipeline();
-    let iterator = iterable [Symbol.iterator]();
-    this.pipeline.addOperation(new Operation(
+    let iterator = getIterator(iterable);
+    this.pipeline.addOperation(
         () => {
-          return iterator.next();
+          return iterator;
         }
-    ));
+    );
   }
 
   map<U>(mapper: MappingFunction<T, U>): Stream<U> {
-    this.pipeline.addOperation(new Operation(
+    this.pipeline.addOperation(
         (prev) => {
-          const nextResult = prev.next();
-          if (nextResult.done) {
-            return nextResult;
-          }
-          return {
-            value: mapper(nextResult.value),
-            done: false
-          }
+          return (function* () {
+            for (let val of prev.next()) {
+              yield mapper(val);
+            }
+          })();
         }
-    ));
+    );
     return this as any
   }
 
@@ -100,52 +83,34 @@ export class Stream<T> implements Iterable<T> {
   }
 
   flatten(): Stream<T> {
-    let currentIterator: Iterator<any> = null;
-    this.pipeline.addOperation(new Operation(
+    // let currentIterator: Iterator<any> = null;
+    this.pipeline.addOperation(
         (prev) => {
-
-          while (true) {
-            if (currentIterator != null) {
-              const iteratorResult = currentIterator.next();
-              if (!iteratorResult.done) {
-                return iteratorResult
+          return (function* () {
+            for (let x of prev.next()) {
+              if (typeof x !== "string" && isIterable(x)) {
+                yield* x;
+              } else {
+                yield x;
               }
             }
-
-            const nextResult = prev.next();
-            if (nextResult.done) {
-              return nextResult;
-            }
-
-            if (isIterable(nextResult.value)) {
-              currentIterator = nextResult.value[Symbol.iterator]();
-            } else {
-              return nextResult;
-            }
-          }
+          })();
         }
-    ));
+    );
     return this as any
   }
 
   filter(predicate: Predicate<T>): Stream<T> {
-    this.pipeline.addOperation(new Operation(
+    this.pipeline.addOperation(
         (prev) => {
-          while (true) {
-            const nextResult = prev.next();
-            if (nextResult.done) {
-              return nextResult;
+          return (function* () {
+            for (let val of prev.next()) {
+              if (predicate(val))
+                yield val;
             }
-
-            if (predicate(nextResult.value)) {
-              return {
-                value: nextResult.value,
-                done: false
-              }
-            }
-          }
+          })();
         }
-    ));
+    );
     return this
   }
 
