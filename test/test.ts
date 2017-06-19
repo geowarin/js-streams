@@ -51,4 +51,14 @@ describe("Stream operations", () => {
             .toArray()
     ).toEqual([1, 2, 2, 4])
   });
+
+  it('should groupBy', () => {
+    expect(
+        streamOf([1, 2])
+            .groupBy(e => e % 2 == 0 ? "even": "odd")
+    ).toEqual({
+      odd: [1],
+      even: [2],
+    })
+  });
 });

@@ -6,6 +6,8 @@ export interface Predicate<T> {
   (e: T): boolean
 }
 
+export type GroupingResult<T> = {[key: string]: T[]}
+
 class Operation {
   previousOperation: Operation;
 
@@ -100,6 +102,18 @@ export class Stream<T> implements Iterable<T> {
 
   toArray(): T[] {
     return [...this];
+  }
+
+  groupBy(mappingFunction: MappingFunction<T, string>): GroupingResult<T> {
+    const result = {};
+    for (let x of this) {
+      const key = mappingFunction(x);
+      if (result[key] === undefined) {
+        result[key] = [];
+      }
+      result[key].push(x);
+    }
+    return result;
   }
 }
 
