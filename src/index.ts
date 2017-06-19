@@ -13,11 +13,11 @@ export interface Consumer<T> {
 export type Map<T> = {[key: string]: T}
 export type GroupingResult<T> = Map<T[]>
 
-function getIterator(iterable): IterableIterator<any> {
+function getIterator(iterable: any): IterableIterator<any> {
   return iterable [Symbol.iterator]()
 }
 
-function isIterable(obj) {
+function isIterable(obj: any) {
   return obj != null && typeof obj[Symbol.iterator] === 'function';
 }
 
@@ -120,7 +120,7 @@ export class Stream<T> implements Iterable<T> {
   }
 
   groupBy(mappingFunction: MappingFunction<T, string>): GroupingResult<T> {
-    const result = {};
+    const result: GroupingResult<T> = {};
     for (let x of this) {
       const key = mappingFunction(x);
       if (result[key] === undefined) {
@@ -135,7 +135,7 @@ export class Stream<T> implements Iterable<T> {
 export function streamOf<T>(map: Map<T>): Stream<[string, T]>;
 export function streamOf<T>(iterable: Iterable<T>): Stream<T>;
 
-export function streamOf<T>(iterable) {
+export function streamOf<T>(iterable: any) {
   if (isIterable(iterable)) {
     return new Stream<T>(iterable)
   }
