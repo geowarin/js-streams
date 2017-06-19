@@ -12,7 +12,7 @@ class Operation {
   constructor(private operationWork: OperationWork) {
   }
 
-  next() {
+  iterator() {
     return this.operationWork(this.previousOperation);
   }
 }
@@ -34,44 +34,33 @@ class Pipeline<T> {
     this.lastOperation = newOperation;
   }
 
-  next(): Iterator<T> {
-    return this.lastOperation.next();
+  iterator(): Iterator<T> {
+    return this.lastOperation.iterator();
   }
 }
 
 function isIterable(obj) {
-  // checks for null and undefined
-  if (obj == null) {
-    return false;
-  }
-  return typeof obj[Symbol.iterator] === 'function';
+  return obj != null && typeof obj[Symbol.iterator] === 'function';
 }
 
 export class Stream<T> implements Iterable<T> {
   private pipeline: Pipeline<any>;
 
   [Symbol.iterator](): Iterator<T> {
-    return this.pipeline.next();
+    return this.pipeline.iterator();
   }
 
   constructor(private iterable: Iterable<any>) {
     this.pipeline = new Pipeline();
-    let iterator = getIterator(iterable);
-    this.pipeline.addOperation(
-        () => {
-          return iterator;
-        }
-    );
+    this.pipeline.addOperation(() => getIterator(iterable));
   }
 
   map<U>(mapper: MappingFunction<T, U>): Stream<U> {
     this.pipeline.addOperation(
-        (prev) => {
-          return (function* () {
-            for (let val of prev.next()) {
-              yield mapper(val);
-            }
-          })();
+        function* (prev) {
+          for (let val of prev.iterator()) {
+            yield mapper(val);
+          }
         }
     );
     return this as any
@@ -83,18 +72,15 @@ export class Stream<T> implements Iterable<T> {
   }
 
   flatten(): Stream<T> {
-    // let currentIterator: Iterator<any> = null;
     this.pipeline.addOperation(
-        (prev) => {
-          return (function* () {
-            for (let x of prev.next()) {
-              if (typeof x !== "string" && isIterable(x)) {
-                yield* x;
-              } else {
-                yield x;
-              }
+        function* (prev) {
+          for (let x of prev.iterator()) {
+            if (typeof x !== "string" && isIterable(x)) {
+              yield* x;
+            } else {
+              yield x;
             }
-          })();
+          }
         }
     );
     return this as any
@@ -102,13 +88,11 @@ export class Stream<T> implements Iterable<T> {
 
   filter(predicate: Predicate<T>): Stream<T> {
     this.pipeline.addOperation(
-        (prev) => {
-          return (function* () {
-            for (let val of prev.next()) {
-              if (predicate(val))
-                yield val;
-            }
-          })();
+        function* (prev) {
+          for (let val of prev.iterator()) {
+            if (predicate(val))
+              yield val;
+          }
         }
     );
     return this
