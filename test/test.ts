@@ -1,14 +1,14 @@
 import {streamOf} from "../src/index";
 
+const isEven = x => x % 2 == 0;
+
 describe("Stream operations", () => {
 
   it('should return an array', () => {
-
     expect(streamOf([1, 2]).toArray()).toEqual([1, 2])
   });
 
   it('should map', () => {
-
     expect(
         streamOf([1, 2])
             .map(i => i * 2)
@@ -17,7 +17,6 @@ describe("Stream operations", () => {
   });
 
   it('should map twice', () => {
-
     expect(
         streamOf([1, 2])
             .map(i => i * 2)
@@ -27,10 +26,9 @@ describe("Stream operations", () => {
   });
 
   it('should filter', () => {
-
     expect(
         streamOf([1, 2])
-            .filter(i => i % 2 == 0)
+            .filter(isEven)
             .toArray()
     ).toEqual([2])
   });
@@ -54,7 +52,7 @@ describe("Stream operations", () => {
   it('should groupBy', () => {
     expect(
         streamOf([1, 2])
-            .groupBy(e => e % 2 == 0 ? "even" : "odd")
+            .groupBy(e => isEven(e) ? "even" : "odd")
     ).toEqual({
       odd: [1],
       even: [2],
@@ -79,5 +77,30 @@ describe("Stream operations", () => {
         .toArray();
 
     expect(result).toEqual(["hello, world & people", "buon giorno, amici"])
+  });
+
+  it('finds first', () => {
+    const result = streamOf([1, 2]).findFirst().getOrElse(null);
+    expect(result).toEqual(1);
+  });
+
+  it('finds first with predicate', () => {
+    const result = streamOf([1, 2]).findFirst(isEven).getOrElse(null);
+    expect(result).toEqual(2);
+  });
+
+  it('findFirst returns none on empty collection', () => {
+    const result = streamOf([]).findFirst().getOrElse(42);
+    expect(result).toEqual(42);
+  });
+
+  it('should find last with predicate', () => {
+    const result = streamOf([1,2,3,4,5]).findLast().getOrElse(null);
+    expect(result).toEqual(5);
+  });
+
+  it('should find last with predicate', () => {
+    const result = streamOf([1,2,3,4,5]).findLast(isEven).getOrElse(null);
+    expect(result).toEqual(4);
   });
 });

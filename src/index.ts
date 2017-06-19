@@ -1,3 +1,5 @@
+import {None, Optional} from "./Optional";
+
 export interface MappingFunction<T, U> {
   (e: T): U
 }
@@ -10,8 +12,9 @@ export interface Consumer<T> {
   (e: T): void
 }
 
-export type Map<T> = {[key: string]: T}
-export type GroupingResult<T> = Map<T[]>
+export type Map<T> = {[key: string]: T};
+export type GroupingResult<T> = Map<T[]>;
+export type Pair<T, U> = [T, U];
 
 function getIterator(iterable: any): IterableIterator<any> {
   return iterable [Symbol.iterator]()
@@ -119,6 +122,25 @@ export class Stream<T> implements Iterable<T> {
     }
   }
 
+  findFirst(predicate: Predicate<T> = Boolean): Optional<T> {
+    for (let x of this) {
+      if (predicate(x)) {
+        return Optional(x);
+      }
+    }
+    return None;
+  }
+
+  findLast(predicate: Predicate<T> = Boolean): Optional<T> {
+    let last: Optional<T> = None;
+    for (let x of this) {
+      if (predicate(x)) {
+        last = Optional(x);
+      }
+    }
+    return last;
+  }
+
   groupBy(mappingFunction: MappingFunction<T, string>): GroupingResult<T> {
     const result: GroupingResult<T> = {};
     for (let x of this) {
@@ -132,7 +154,7 @@ export class Stream<T> implements Iterable<T> {
   }
 }
 
-export function streamOf<T>(map: Map<T>): Stream<[string, T]>;
+export function streamOf<T>(map: Map<T>): Stream<Pair<string, T>>;
 export function streamOf<T>(iterable: Iterable<T>): Stream<T>;
 
 export function streamOf<T>(iterable: any) {
