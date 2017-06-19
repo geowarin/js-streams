@@ -51,13 +51,4 @@ describe("Stream operations", () => {
             .toArray()
     ).toEqual([1, 2, 2, 4])
   });
-
-  it('generator', () => {
-
-    function *gen() {
-      yield 1
-    }
-
-    gen().next()
-  });
 });
