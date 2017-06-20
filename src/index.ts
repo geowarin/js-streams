@@ -18,6 +18,10 @@ export interface Consumer<T> {
   (e: T): void
 }
 
+export interface Comparator<T> {
+  (a: T, b: T): number
+}
+
 export type Map<T> = { [key: string]: T };
 export type GroupingResult<T> = Map<T[]>;
 export type Pair<T, U> = [T, U];
@@ -31,7 +35,7 @@ export function streamOf<T>(iterable: any) {
     return new FiniteStream(iterable);
   }
   if (isIterable(iterable)) {
-    return new Stream<T>(iterable)
+    return new Stream(iterable)
   }
   return new FiniteStream(entries(iterable));
 }

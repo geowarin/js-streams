@@ -1,4 +1,4 @@
-import {Consumer, GroupingResult, MappingFunction, Pair, Predicate} from "./index";
+import {Comparator, Consumer, GroupingResult, MappingFunction, Pair, Predicate} from "./index";
 import {None, Optional} from "./Optional";
 import {Stream} from "./Stream";
 
@@ -86,5 +86,23 @@ export class FiniteStream<T> extends Stream<T> {
       }
     }
     return true;
+  }
+
+  sorted(comparator?: Comparator<T>): T[] {
+    // TODO: is this n^2 ?
+    return this.toArray().sort(comparator);
+  }
+
+  sort(comparator?: Comparator<T>): FiniteStream<T> {
+    // TODO: is this n^2 ?
+    this.pipeline.addOperation(
+        function* (prev) {
+          const sorted = [...prev.iterator()].sort(comparator);
+          for (let x of sorted) {
+            yield x;
+          }
+        }
+    );
+    return this;
   }
 }

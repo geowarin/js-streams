@@ -5,7 +5,7 @@ import {Pipeline} from "./Pipeline";
 import {getIterator, isIterable} from "./utils";
 
 export class Stream<T> implements Iterable<T> {
-  private pipeline: Pipeline<any>;
+  protected pipeline: Pipeline<any>;
 
   [Symbol.iterator](): Iterator<T> {
     return getIterator(this.pipeline);

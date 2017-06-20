@@ -115,10 +115,19 @@ describe("Stream operations", () => {
   });
 
   it('should skip and take', () => {
-    expect(streamOf([1, 2, 3, 4]).skip(1).take(1).toArray()).toEqual([2])
+    expect(streamOf([1, 2, 3, 4]).skip(1).take(1).toArray()).toEqual([2]);
   });
 
   it('should find every as even', () => {
-    expect(streamOf([1, 2, 3, 4]).filter(isEven).every(isEven)).toEqual(true)
+    expect(streamOf([1, 2, 3, 4]).filter(isEven).every(isEven)).toEqual(true);
+  });
+
+  it('should be sorted', () => {
+    expect(streamOf([3, 4, 1, 2]).sorted()).toEqual([1, 2, 3, 4]);
+  });
+
+  it('should sort a stream', () => {
+    expect(streamOf([3, 4, 1, 2]).sort().filter(isEven).toArray()).toEqual([2, 4]);
+    expect(streamOf([3, 4, 1, 2]).filter(isEven).sort().toArray()).toEqual([2, 4]);
   });
 });
