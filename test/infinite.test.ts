@@ -26,4 +26,14 @@ describe("inifite stream operations", () => {
     expect(streamOf(naturals()).filter(isEven).take(2).toArray()).toEqual([0, 2])
   });
 
+  it('should tap', () => {
+    const tapper = (arr) => (x) => arr.push(x);
+    const tap1 = [];
+    const tap2 = [];
+    streamOf(naturals()).tap(tapper(tap1)).take(2).tap(tapper(tap2)).toArray();
+
+    expect(tap1).toEqual([0, 1, 2]);
+    expect(tap2).toEqual([0, 1]);
+  });
+
 });

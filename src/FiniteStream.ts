@@ -18,7 +18,7 @@ export class FiniteStream<T> extends Stream<T> {
     return super.map(mapper) as FiniteStream<U>;
   }
 
-  filter(predicate: Predicate<T>): FiniteStream<T> {
+  filter(predicate: Predicate<T> = Boolean): FiniteStream<T> {
     return super.filter(predicate) as FiniteStream<T>;
   }
 
@@ -30,13 +30,21 @@ export class FiniteStream<T> extends Stream<T> {
     return super.flatMap(mapper) as FiniteStream<U>;
   }
 
+  tap(consumer: Consumer<T> = console.log.bind(console)): FiniteStream<T> {
+    return super.tap(consumer) as FiniteStream<T>
+  }
+
+  skip(num: number = 1): FiniteStream<T> {
+    return super.skip(num) as FiniteStream<T>
+  }
+
   forEach(consumer: Consumer<T>) {
     for (let x of this) {
       consumer(x);
     }
   }
 
-  findLast(predicate: Predicate<T> = Boolean): Optional<T> {
+  findLast(predicate: Predicate<T> = () => true): Optional<T> {
     let last: Optional<T> = None;
     for (let x of this) {
       if (predicate(x)) {

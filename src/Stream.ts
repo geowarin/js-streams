@@ -1,5 +1,5 @@
 import {FiniteStream} from "./FiniteStream";
-import {MappingFunction, Predicate, streamOf} from "./index";
+import {Consumer, MappingFunction, Predicate, streamOf} from "./index";
 import {None, Optional} from "./Optional";
 import {Pipeline} from "./Pipeline";
 import {getIterator, isIterable} from "./utils";
@@ -73,6 +73,18 @@ export class Stream<T> implements Iterable<T> {
     );
     // TODO: pass the iterable directly
     return streamOf([...this.pipeline]);
+  }
+
+  tap(consumer: Consumer<T> = console.log.bind(console)): Stream<T> {
+    this.pipeline.addOperation(
+        function* (prev) {
+          for (let x of prev.iterator()) {
+            consumer(x);
+            yield x;
+          }
+        }
+    );
+    return this;
   }
 
   skip(num: number = 1): Stream<T> {
