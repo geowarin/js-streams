@@ -95,12 +95,18 @@ describe("Stream operations", () => {
   });
 
   it('should find last with predicate', () => {
-    const result = streamOf([1,2,3,4,5]).findLast().getOrElse(null);
+    const result = streamOf([1, 2, 3, 4, 5]).findLast().getOrElse(null);
     expect(result).toEqual(5);
   });
 
   it('should find last with predicate', () => {
-    const result = streamOf([1,2,3,4,5]).findLast(isEven).getOrElse(null);
+    const result = streamOf([1, 2, 3, 4, 5]).findLast(isEven).getOrElse(null);
     expect(result).toEqual(4);
+  });
+
+  it('should partition', () => {
+    const [evens, odds] = streamOf([1, 2, 3, 4, 5]).partition(isEven);
+    expect(evens).toEqual([2, 4]);
+    expect(odds).toEqual([1, 3, 5]);
   });
 });
