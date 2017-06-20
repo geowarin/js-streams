@@ -1,0 +1,43 @@
+import {Comparator} from "./index";
+
+export interface ComparatorMapping<T> {
+  (e : T): any
+}
+
+export type ComparatorMapper<T> = keyof T | ComparatorMapping<T>
+
+export function desc<T>(attribute: ComparatorMapper<T> = a => a): Comparator<T> {
+  return (a: T, b: T) => {
+    const aVal = get(a, attribute);
+    const bVal = get(b, attribute);
+    return aVal < bVal ? 1 : aVal == bVal ? 0 : -1;
+  }
+}
+export function asc<T>(attribute: ComparatorMapper<T> = a => a): Comparator<T> {
+  return (a: T, b: T) => {
+    const aVal = get(a, attribute);
+    const bVal = get(b, attribute);
+    return aVal > bVal ? 1 : aVal == bVal ? 0 : -1;
+  }
+}
+
+function get<T>(obj: any, attr: ComparatorMapper<T>) {
+  if (typeof attr == "function") {
+    const fn =  attr as ComparatorMapping<T>;
+    return fn(obj);
+  }
+  return obj[attr];
+}
+
+export function comparators<T>(...comparators: Comparator<T>[]): Comparator<T> {
+  return (a: T, b: T) => {
+    for (let comparator of comparators) {
+      const comparisonVal = comparator(a, b);
+      if (comparisonVal != 0) {
+        return comparisonVal;
+      }
+    }
+    return 0;
+  }
+}
+

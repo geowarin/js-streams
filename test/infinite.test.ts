@@ -36,6 +36,14 @@ describe("inifite stream operations", () => {
     expect(tap2).toEqual([0, 1]);
   });
 
+  it('should tap lazily', () => {
+    const tapper = (arr) => (x) => arr.push(x);
+    const tap1 = [];
+    streamOf(naturals()).tap(tapper(tap1)).findFirst();
+
+    expect(tap1).toEqual([0]);
+  });
+
   it('should find some positive values', () => {
     expect(streamOf(naturals()).some(x => x > 0)).toEqual(true)
   });

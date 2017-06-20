@@ -2,9 +2,10 @@ import {Stream} from "./Stream";
 import {entries, isIterable} from "./utils";
 import {FiniteStream} from "./FiniteStream";
 
-export {Stream} from "./Stream";
-export {FiniteStream} from "./FiniteStream";
-export {Optional, None} from "./Optional";
+export * from "./Stream";
+export * from "./FiniteStream";
+export * from "./Optional";
+export * from "./Comparators";
 
 export interface MappingFunction<T, U> {
   (e: T, index: number): U
