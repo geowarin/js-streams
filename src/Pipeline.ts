@@ -12,8 +12,12 @@ export class Operation {
   }
 }
 
-export class Pipeline<T> {
+export class Pipeline<T> implements Iterable<T> {
   private lastOperation: Operation;
+
+  [Symbol.iterator](): Iterator<T> {
+    return this.lastOperation.iterator();
+  }
 
   addOperation(work: OperationWork) {
     const newOperation = new Operation(work);
@@ -21,9 +25,5 @@ export class Pipeline<T> {
       newOperation.previousOperation = this.lastOperation;
     }
     this.lastOperation = newOperation;
-  }
-
-  iterator(): Iterator<T> {
-    return this.lastOperation.iterator();
   }
 }

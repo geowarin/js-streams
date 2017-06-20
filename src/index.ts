@@ -2,6 +2,10 @@ import {Stream} from "./Stream";
 import {entries, isIterable} from "./utils";
 import {FiniteStream} from "./FiniteStream";
 
+export {Stream} from "./stream";
+export {FiniteStream} from "./FiniteStream";
+export {Optional, None} from "./Optional";
+
 export interface MappingFunction<T, U> {
   (e: T): U
 }
