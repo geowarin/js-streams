@@ -68,13 +68,23 @@ export class FiniteStream<T> extends Stream<T> {
 
   groupBy(mappingFunction: MappingFunction<T, string>): GroupingResult<T> {
     const result: GroupingResult<T> = {};
+    let index = 0;
     for (let x of this) {
-      const key = mappingFunction(x);
+      const key = mappingFunction(x, index++);
       if (result[key] === undefined) {
         result[key] = [];
       }
       result[key].push(x);
     }
     return result;
+  }
+
+  every(predicate: Predicate<T> = Boolean): boolean {
+    for (let x of this) {
+      if (!predicate(x)) {
+        return false;
+      }
+    }
+    return true;
   }
 }

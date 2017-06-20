@@ -19,8 +19,9 @@ export class Stream<T> implements Iterable<T> {
   map<U>(mapper: MappingFunction<T, U>): Stream<U> {
     this.pipeline.addOperation(
         function* (prev) {
+          let index = 0;
           for (let val of prev.iterator()) {
-            yield mapper(val);
+            yield mapper(val, index++);
           }
         }
     );
@@ -108,5 +109,14 @@ export class Stream<T> implements Iterable<T> {
       }
     }
     return None;
+  }
+
+  some(predicate: Predicate<T> = Boolean): boolean {
+    for (let x of this) {
+      if (predicate(x)) {
+        return true;
+      }
+    }
+    return false;
   }
 }

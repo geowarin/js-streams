@@ -16,6 +16,10 @@ describe("Stream operations", () => {
     ).toEqual([2, 4])
   });
 
+  it('should map with index', () => {
+    expect(streamOf([10, 11]).map((i, index) => index).toArray()).toEqual([0, 1])
+  });
+
   it('should map twice', () => {
     expect(
         streamOf([1, 2])
@@ -111,6 +115,10 @@ describe("Stream operations", () => {
   });
 
   it('should skip and take', () => {
-    expect(streamOf([1,2,3,4]).skip(1).take(1).toArray()).toEqual([2])
+    expect(streamOf([1, 2, 3, 4]).skip(1).take(1).toArray()).toEqual([2])
+  });
+
+  it('should find every as even', () => {
+    expect(streamOf([1, 2, 3, 4]).filter(isEven).every(isEven)).toEqual(true)
   });
 });

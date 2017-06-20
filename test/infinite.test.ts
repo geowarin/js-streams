@@ -36,4 +36,8 @@ describe("inifite stream operations", () => {
     expect(tap2).toEqual([0, 1]);
   });
 
+  it('should find some positive values', () => {
+    expect(streamOf(naturals()).some(x => x > 0)).toEqual(true)
+  });
+
 });
