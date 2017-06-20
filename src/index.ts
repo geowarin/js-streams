@@ -1,4 +1,6 @@
-import {None, Optional} from "./Optional";
+import {Stream} from "./Stream";
+import {entries, isIterable} from "./utils";
+import {FiniteStream} from "./FiniteStream";
 
 export interface MappingFunction<T, U> {
   (e: T): U
@@ -12,154 +14,20 @@ export interface Consumer<T> {
   (e: T): void
 }
 
-export type Map<T> = {[key: string]: T};
+export type Map<T> = { [key: string]: T };
 export type GroupingResult<T> = Map<T[]>;
 export type Pair<T, U> = [T, U];
 
-function getIterator(iterable: any): IterableIterator<any> {
-  return iterable [Symbol.iterator]()
-}
-
-function isIterable(obj: any) {
-  return obj != null && typeof obj[Symbol.iterator] === 'function';
-}
-
-function entries <T> (obj: Map<T>) {
-  return Object.keys(obj).map(key => [key, obj[key]]);
-}
-
-type OperationWork = (previousOperation: Operation) => IterableIterator<any>
-
-class Operation {
-  previousOperation: Operation;
-
-  constructor(private operationWork: OperationWork) {
-  }
-
-  iterator() {
-    return this.operationWork(this.previousOperation);
-  }
-}
-
-class Pipeline<T> {
-  private lastOperation: Operation;
-
-  addOperation(work: OperationWork) {
-    const newOperation = new Operation(work);
-    if (this.lastOperation) {
-      newOperation.previousOperation = this.lastOperation;
-    }
-    this.lastOperation = newOperation;
-  }
-
-  iterator(): Iterator<T> {
-    return this.lastOperation.iterator();
-  }
-}
-
-export class Stream<T> implements Iterable<T> {
-  private pipeline: Pipeline<any>;
-
-  [Symbol.iterator](): Iterator<T> {
-    return this.pipeline.iterator();
-  }
-
-  constructor(private iterable: Iterable<any>) {
-    this.pipeline = new Pipeline();
-    this.pipeline.addOperation(() => getIterator(iterable));
-  }
-
-  map<U>(mapper: MappingFunction<T, U>): Stream<U> {
-    this.pipeline.addOperation(
-        function* (prev) {
-          for (let val of prev.iterator()) {
-            yield mapper(val);
-          }
-        }
-    );
-    return this as any;
-  }
-
-  flatMap<U>(mapper: MappingFunction<T, U>): Stream<U> {
-    this.map(mapper);
-    return this.flatten() as any;
-  }
-
-  flatten(): Stream<T> {
-    this.pipeline.addOperation(
-        function* (prev) {
-          for (let x of prev.iterator()) {
-            if (typeof x !== "string" && isIterable(x)) {
-              yield* x;
-            } else {
-              yield x;
-            }
-          }
-        }
-    );
-    return this as any;
-  }
-
-  filter(predicate: Predicate<T>): Stream<T> {
-    this.pipeline.addOperation(
-        function* (prev) {
-          for (let val of prev.iterator()) {
-            if (predicate(val))
-              yield val;
-          }
-        }
-    );
-    return this;
-  }
-
-  toArray(): T[] {
-    return [...this];
-  }
-
-  forEach(consumer: Consumer<T>) {
-    for (let x of this) {
-      consumer(x);
-    }
-  }
-
-  findFirst(predicate: Predicate<T> = Boolean): Optional<T> {
-    for (let x of this) {
-      if (predicate(x)) {
-        return Optional(x);
-      }
-    }
-    return None;
-  }
-
-  findLast(predicate: Predicate<T> = Boolean): Optional<T> {
-    let last: Optional<T> = None;
-    for (let x of this) {
-      if (predicate(x)) {
-        last = Optional(x);
-      }
-    }
-    return last;
-  }
-
-  groupBy(mappingFunction: MappingFunction<T, string>): GroupingResult<T> {
-    const result: GroupingResult<T> = {};
-    for (let x of this) {
-      const key = mappingFunction(x);
-      if (result[key] === undefined) {
-        result[key] = [];
-      }
-      result[key].push(x);
-    }
-    return result;
-  }
-}
-
-export function streamOf<T>(map: Map<T>): Stream<Pair<string, T>>;
+export function streamOf<T>(array: T[]): FiniteStream<T>;
+export function streamOf<T>(map: Map<T>): FiniteStream<Pair<string, T>>;
 export function streamOf<T>(iterable: Iterable<T>): Stream<T>;
 
 export function streamOf<T>(iterable: any) {
+  if (iterable instanceof Array) {
+    return new FiniteStream(iterable);
+  }
   if (isIterable(iterable)) {
     return new Stream<T>(iterable)
   }
-  return new Stream(entries(iterable));
+  return new FiniteStream(entries(iterable));
 }
