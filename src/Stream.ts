@@ -71,6 +71,7 @@ export class Stream<T> implements Iterable<T> {
           }
         }
     );
+    // TODO: pass the iterable directly
     return streamOf([...this.pipeline]);
   }
 

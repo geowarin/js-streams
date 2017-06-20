@@ -109,4 +109,8 @@ describe("Stream operations", () => {
     expect(evens).toEqual([2, 4]);
     expect(odds).toEqual([1, 3, 5]);
   });
+
+  it('should skip and take', () => {
+    expect(streamOf([1,2,3,4]).skip(1).take(1).toArray()).toEqual([2])
+  });
 });
