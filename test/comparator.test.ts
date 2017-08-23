@@ -1,6 +1,5 @@
-
 import {asc, comparators, compare, desc} from "../src/Comparators";
-import {Comparator} from "../src/index";
+import {Comparator, streamOf} from "../src/index";
 
 interface Person {
   name: string
@@ -38,6 +37,12 @@ describe('comparators', () => {
     const persons = defaultPersons.slice();
     const comparator: Comparator<Person> = compare<Person>().desc("age").asc("name");
     const sorted = persons.sort(comparator);
+    expect(sorted.map(p => p.name)).toEqual(["Eddy", "Maria", "Gustav", "Kevin"])
+  });
+
+  it('should be available on streams', () => {
+    const sorted = streamOf(defaultPersons.slice())
+      .sortedBy(it => it.desc("age").asc("name"));
     expect(sorted.map(p => p.name)).toEqual(["Eddy", "Maria", "Gustav", "Kevin"])
   });
 });

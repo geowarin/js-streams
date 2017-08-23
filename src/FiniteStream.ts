@@ -1,4 +1,4 @@
-import {asc, ComparatorMapping} from "./Comparators";
+import {asc, ComparatorChain, ComparatorMapping, compare} from "./Comparators";
 import {Comparator, Consumer, GroupingResult, MappingFunction, Pair, Predicate} from "./index";
 import {None, Optional} from "./Optional";
 import {Stream} from "./Stream";
@@ -87,6 +87,10 @@ export class FiniteStream<T> extends Stream<T> {
       }
     }
     return true;
+  }
+
+  sortedBy(comparatorBuilder: (chain: ComparatorChain<T>) => Comparator<T>): T[] {
+    return this.sorted(comparatorBuilder(compare<T>()));
   }
 
   sorted(comparator?: Comparator<T>): T[] {
