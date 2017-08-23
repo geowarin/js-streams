@@ -1,3 +1,4 @@
+import {asc, ComparatorMapping} from "./Comparators";
 import {Comparator, Consumer, GroupingResult, MappingFunction, Pair, Predicate} from "./index";
 import {None, Optional} from "./Optional";
 import {Stream} from "./Stream";
@@ -104,5 +105,23 @@ export class FiniteStream<T> extends Stream<T> {
         }
     );
     return this;
+  }
+
+  max(comparator: Comparator<T> = asc()): Optional<T> {
+    let result: Optional<T> = None;
+    for (let x of this) {
+      result = Optional(x);
+      break;
+    }
+    for (let x of this) {
+      if (comparator(result.get(), x) < 0) {
+        result = Optional(x);
+      }
+    }
+    return result;
+  }
+
+  maxBy(mapping: ComparatorMapping<T>): Optional<T> {
+    return this.max(asc(mapping));
   }
 }

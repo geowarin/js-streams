@@ -11,6 +11,9 @@ class Some<A> implements Optional<A> {
   map<B>(func: (a: A) => B) {
     return Optional(func(this.a));
   }
+  get() {
+    return this.a;
+  }
   match<B>(cases: {
     some: (a: A) => B;
     none: () => B;
@@ -29,6 +32,9 @@ export const None: Optional<any> = {
   isPresent() {
     return false;
   },
+  get() {
+    throw new Error("No value");
+  },
   match<B>(cases: {
     some: (a: any) => B;
     none: () => B;
@@ -43,6 +49,7 @@ export interface Optional<A> {
     none: () => B;
   }): B;
   getOrElse(a: A): A;
+  get(): A;
   isPresent(): boolean;
   map<B>(func: (a: A) => B): Optional<B>;
 }

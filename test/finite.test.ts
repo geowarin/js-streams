@@ -54,13 +54,11 @@ describe("Stream operations", () => {
   });
 
   it('should groupBy', () => {
-    expect(
-        streamOf([1, 2])
-            .groupBy(e => isEven(e) ? "even" : "odd")
-    ).toEqual({
-      odd: [1],
-      even: [2],
-    })
+    expect(streamOf([1, 2]).groupBy(e => isEven(e) ? "even" : "odd"))
+        .toEqual({
+          odd: [1],
+          even: [2],
+        })
   });
 
   it('stream map entries', () => {
