@@ -5,13 +5,16 @@
   "typings": "lib/index.js",
   "license": "MIT",
   "scripts": {
-    "build": "tsc -p ."
+    "build": "tsc -p .",
+    "doc": "typedoc -out docs/ --module commonjs --target es6",
+    "test": "jest"
   },
   "devDependencies": {
     "@types/jest": "^19.2.4",
     "@types/node": "^8.0.0",
     "jest": "^20.0.4",
     "ts-jest": "^20.0.6",
+    "typedoc": "^0.8.0",
     "typescript": "^2.3.4"
   },
   "jest": {
